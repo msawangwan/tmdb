@@ -63,7 +63,7 @@ func TestCreateClient(t *testing.T) {
 	pretty(t, client)
 }
 
-func TestEndpointGetMovieDetails(t *testing.T) {
+func TestEndpointv3GetMovieDetails(t *testing.T) {
 	// t.Skip("")
 
 	client, err := createClient()
@@ -112,7 +112,7 @@ func TestEndpointGetMovieDetails(t *testing.T) {
 	}
 }
 
-func TestEndpointGetMovieKeywords(t *testing.T) {
+func TestEndpointv3GetMovieKeywords(t *testing.T) {
 	// t.Skip("")
 
 	client, err := createClient()
@@ -161,7 +161,7 @@ func TestEndpointGetMovieKeywords(t *testing.T) {
 	}
 }
 
-func TestEndpointGetMovieWatchProviders(t *testing.T) {
+func TestEndpointv3GetMovieWatchProviders(t *testing.T) {
 	// t.Skip("")
 
 	client, err := createClient()
@@ -210,7 +210,7 @@ func TestEndpointGetMovieWatchProviders(t *testing.T) {
 	}
 }
 
-func TestEndpointGetMovieCredits(t *testing.T) {
+func TestEndpointV3GetMovieCredits(t *testing.T) {
 	client, err := createClient()
 	if err != nil {
 		t.Fatal(err)
@@ -223,6 +223,78 @@ func TestEndpointGetMovieCredits(t *testing.T) {
 		{"hook", tmdb.NewGetMovieCredits("tt0102057")},
 		{"gone_with_the_wind", tmdb.NewGetMovieCredits("tt0031381")},
 		{"cheeseballs", tmdb.NewGetMovieCredits("tt3097934")},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.label, func(tt *testing.T) {
+			if VERBOSE {
+				tt.Logf("%s", testcase.req)
+				tt.Logf("%s", client.BuildURL(testcase.req))
+			}
+
+			if client == nil {
+				tt.Skip("no valid api key found, set one with 'TMDB_API_KEY'")
+			}
+
+			res, err := client.GET(testcase.req)
+			if err != nil {
+				if errors.Is(err, tmdb.ErrBadRequest) {
+					return
+				}
+				t.Error(err)
+			}
+
+			o := map[string]interface{}{}
+
+			if err := json.Unmarshal(res, &o); err != nil {
+				tt.Error(err)
+			}
+
+			if VERBOSE {
+				pretty(tt, o)
+			}
+		})
+	}
+}
+
+type getTMDbMovieSearchResults struct {
+	page         int    // 1
+	query        string // "star+wars"
+	language     string // "en-US"
+	includeAdult string // "false"
+}
+
+func newGetTMDbMovieSearchResults(page int, q string) getTMDbMovieSearchResults {
+	return getTMDbMovieSearchResults{
+		page:         page,
+		query:        q,
+		language:     "en-US",
+		includeAdult: "false",
+	}
+}
+
+func (m getTMDbMovieSearchResults) String() string {
+	return fmt.Sprintf(
+		"/search/movie?query=%s&language=%s&include_adult=%s&page=%d",
+		m.query,
+		m.language,
+		m.includeAdult,
+		m.page,
+	)
+}
+
+func TestEndpointV3WithQueryParams(t *testing.T) {
+	client, err := createClient()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var testcases = []struct {
+		label string
+		req   tmdb.EndpointParameters
+	}{
+		{"first_page", newGetTMDbMovieSearchResults(1, "star+wars")},
+		{"second_page", newGetTMDbMovieSearchResults(2, "star+wars")},
 	}
 
 	for _, testcase := range testcases {

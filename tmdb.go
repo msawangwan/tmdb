@@ -103,11 +103,23 @@ func New(config io.Reader, timeoutSeconds int) (*APIClient, error) {
 
 // BuildURL formats the parameters for a given resource request, returning a url.
 func (client *APIClient) BuildURL(params EndpointParameters) string {
+	p := strings.TrimLeft(params.String(), "/")
+
 	if client.config.version == "3" {
-		return fmt.Sprintf("%s/%s?api_key=%s", client.config.baseurl, strings.TrimLeft(params.String(), "/"), client.config.key)
+		q := fmt.Sprintf("api_key=%s", client.config.key)
+
+		parts := strings.Split(p, "?")
+
+		if len(parts) > 1 {
+			q = fmt.Sprintf("%s&%s", q, parts[1])
+		}
+
+		p = parts[0]
+
+		return fmt.Sprintf("%s/%s?%s", client.config.baseurl, p, q) // return fmt.Sprintf("%s/%s?api_key=%s", client.config.baseurl, p, client.config.key)
 	}
 
-	return fmt.Sprintf("%s/%s", client.config.baseurl, strings.TrimLeft(params.String(), "/"))
+	return fmt.Sprintf("%s/%s", client.config.baseurl, p)
 }
 
 // GET prepares and submites
