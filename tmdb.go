@@ -10,59 +10,10 @@ import (
 	"time"
 )
 
-// BadRequestError is returned when an error is returned from the tmDb API.
-type BadRequestError struct {
-	Resource   string `json:"resource,omitempty"`
-	StatusCode int    `json:"statusCode,omitempty"`
-}
-
-func newBadRequestError(Resource string, statusCode int) *BadRequestError {
-	return &BadRequestError{Resource: Resource, StatusCode: statusCode}
-}
-
-// Is implements the Error interface.
-func (e *BadRequestError) Is(target error) bool {
-	return e.Error() == target.Error()
-}
-
-// As implements the Error interface.
-func (e *BadRequestError) As(target error) bool {
-	return e.Error() == target.Error()
-}
-
-// Error implements the Error interface.
-func (e *BadRequestError) Error() string {
-	return fmt.Sprintf("tmdb: bad request: %d", e.StatusCode)
-}
-
-// Exported errors.
-var (
-	ErrBadRequest = newBadRequestError("", 404)
-)
-
-// normalizedConfig is used internally.
-type normalizedConfig struct {
-	baseurl string `json:"-"`
-	key     string `json:"-"`
-	version string `json:"-"`
-}
-
-func (n *normalizedConfig) bearerToken() string {
-	return fmt.Sprintf("Bearer %s", n.key)
-}
-
-// APIClientConfig exposes fields that are mapped to a JSON configuration file.
-type APIClientConfig struct {
-	API struct {
-		Baseurl string `json:"baseurl"`
-		Version string `json:"version"`
-		Key     string `json:"key"`
-	} `json:"api"`
-
-	Account struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	} `json:"account"`
+// APIClientContract defines the client interface namely for test mocking.
+type APIClientContract interface {
+	BuildURL(params EndpointParameters) string
+	GET(params EndpointParameters) ([]byte, error)
 }
 
 // APIClient wraps the standard library http.Client and maintains any state required
@@ -74,7 +25,7 @@ type APIClient struct {
 }
 
 // New creates a new client, initialized with customized standard library http.Client.
-func New(config io.Reader, timeoutSeconds int) (*APIClient, error) {
+func New(config io.Reader, timeoutSeconds int) (APIClientContract, error) {
 	raw, err := ioutil.ReadAll(config)
 	if err != nil {
 		return nil, err
@@ -122,7 +73,7 @@ func (client *APIClient) BuildURL(params EndpointParameters) string {
 	return fmt.Sprintf("%s/%s", client.config.baseurl, p)
 }
 
-// GET prepares and submites
+// GET prepares and submits a request against the tmdb api.
 func (client *APIClient) GET(params EndpointParameters) ([]byte, error) {
 	var endpoint = client.BuildURL(params)
 

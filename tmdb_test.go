@@ -26,7 +26,7 @@ func pretty(t *testing.T, o interface{}) {
 	}
 }
 
-func createClient() (*tmdb.APIClient, error) {
+func createClient() (tmdb.APIClientContract, error) {
 	var (
 		secret string
 	)
@@ -53,8 +53,6 @@ func createClient() (*tmdb.APIClient, error) {
 }
 
 func TestCreateClient(t *testing.T) {
-	// t.Skip("")
-
 	client, err := createClient()
 	if err != nil {
 		t.Fatal(err)
@@ -64,11 +62,13 @@ func TestCreateClient(t *testing.T) {
 }
 
 func TestEndpointv3GetMovieDetails(t *testing.T) {
-	// t.Skip("")
-
 	client, err := createClient()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Skip("nil client: see README.md for help on configuring the client for test ..")
 	}
 
 	var testcases = []struct {
@@ -113,11 +113,13 @@ func TestEndpointv3GetMovieDetails(t *testing.T) {
 }
 
 func TestEndpointv3GetMovieKeywords(t *testing.T) {
-	// t.Skip("")
-
 	client, err := createClient()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Skip("nil client: see README.md for help on configuring the client for test ..")
 	}
 
 	var testcases = []struct {
@@ -162,11 +164,13 @@ func TestEndpointv3GetMovieKeywords(t *testing.T) {
 }
 
 func TestEndpointv3GetMovieWatchProviders(t *testing.T) {
-	// t.Skip("")
-
 	client, err := createClient()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Skip("nil client: see README.md for help on configuring the client for test ..")
 	}
 
 	var testcases = []struct {
@@ -214,6 +218,10 @@ func TestEndpointV3GetMovieCredits(t *testing.T) {
 	client, err := createClient()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Skip("nil client: see README.md for help on configuring the client for test ..")
 	}
 
 	var testcases = []struct {
@@ -287,6 +295,10 @@ func TestEndpointV3WithQueryParams(t *testing.T) {
 	client, err := createClient()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if client == nil {
+		t.Skip("nil client: see README.md for help on configuring the client for test ..")
 	}
 
 	var testcases = []struct {
